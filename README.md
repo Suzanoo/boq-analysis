@@ -2,16 +2,18 @@
 #### **Setting up:**
 - Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html), [Git](https://github.com/git-guides/install-git) 
 - Clone this repository (or directly download)
-- Install packages
-
 ```
  git clone https://github.com/Suzanoo/boq-analysis.git
+```
+- Create conda env and activate conda env
+```
  conda create --name <ชื่อ env ที่ต้องการ> python=3.10
  conda activate <ชื่อ env ที่ตั้งไว้>
- python setup.py install
 ```
-
-
+- Install packages
+```
+ pip install -r requirements.txt
+```
 #### **Run dash board:**
 **Note:** .csv and excel file is allow.
 

@@ -21,6 +21,7 @@ setup(
         'dash',
         'dash_bootstrap_components',
         'setuptools'
+        'openpyxl'
     ],
 
     setup_requires=['pytest-runner'],
