@@ -2,9 +2,10 @@ import pandas as pd
 import dash
 import dash_bootstrap_components as dbc
 
-from dash import html, dcc, callback, Input, Output, State, dash_table
-from pages.nav import sidebar, top_nav
+from dash import html, dcc, callback, Input, Output, State
+from dash.exceptions import PreventUpdate
 
+from pages.nav import sidebar, top_nav
 from tools.utils import df_preprocessing, make_card, query_, table_generated
 
 dash.register_page(__name__)
@@ -80,15 +81,16 @@ def update_table(n, data, text, floors):
     - for case 1 & 3 don't render columns of all floors (use 'QTY' instead)
     
     '''
-    # print(text)
-    # print(value)
+    # print(f'text: {text}') # string statement
+    # print(f'floors: {floors}') # list
+
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
     FLOOR = [x for x in df.columns if x not in MASK] # get floors name
 
     if n != 0:
         # render whole table
-        if (text == 'all') & (floors == 'all'):
+        if (text == 'all') & ('all' in floors):
             ddf = df.copy()
             # render value box
             total = ddf['AMOUNT'].copy().sum()
@@ -100,7 +102,7 @@ def update_table(n, data, text, floors):
                                                                 html.H5(f'{total:,.2f} : THB')
                                                                 ])
         # whole material vs specify floors
-        elif (text == 'all') & (floors != 'all'):
+        elif (text == 'all') & ('all' not in floors):
             floor = [x for x in floors if x != 'all'] # if user select include 'all' --> cut it off
             columns = MASK+floor
             ddf = df[columns].copy()
@@ -125,22 +127,28 @@ def update_table(n, data, text, floors):
                                                                 html.H5(f'{total:,.2f} : THB')
                                                                 ])
         # query material vs every floors
-        elif (text != 'all') & (floors == 'all'):
-            text = str(text)
-            query = query_(text) # TODO solve text come with '_' is one word (a_b, c_d) OK
-
+        elif (text != 'all') & ('all' in floors):
+            query = query_(str(text)) # TODO solve text come with '_' is one word (a_b, c_d) OK
+            print(f'Query: {query}')
             ddf = df[df['DESCRIPTION'].str.contains(query, case=False, regex=True)].copy().drop(FLOOR, axis=1)
-            # render value box
-            total = ddf['AMOUNT'].copy().sum() # sum series
-            # reder table
-            columns = [{"name": x, "id": x} for x in MASK]# do not render column floor name
-            ddf = ddf.to_dict('records') 
 
-            return table_generated(ddf, columns), dbc.CardBody([
-                                                                html.H4(f"Total {text} in {floors}:"),
-                                                                html.H5(f'{total:,.2f} : THB')
-                                                                ])
-        else: # text != 'all' & floor != 'all':
+            # check query did not match
+            if ddf.shape[0] == 0:
+                return None, dbc.CardBody([
+                                html.H4(f"No have {text} in BOQ"),
+                                ])
+            else:
+                # render value box
+                total = ddf['AMOUNT'].copy().sum() # sum series
+                # reder table
+                columns = [{"name": x, "id": x} for x in MASK]# do not render column floor name
+                ddf = ddf.to_dict('records') 
+
+                return table_generated(ddf, columns), dbc.CardBody([
+                                                                    html.H4(f"Total {text} in {floors}:"),
+                                                                    html.H5(f'{total:,.2f} : THB')
+                                                                    ])
+        else: #(text != 'all') & ('all' not in floors)
             floor = [x for x in floors if x != 'all'] # if user select include 'all' --> cut it off
             columns = MASK+floor
             ddf = df[columns].copy()
@@ -150,20 +158,27 @@ def update_table(n, data, text, floors):
             ddf['AMOUNT'] = ddf[['QTY', 'TOTAL']].copy().prod(axis=1) # multiply df
             ddf = ddf[~(ddf[floor]==0).all(axis=1)] # cut off zero in selected floor
 
-            text = str(text)
-            query = query_(text)
+            query = query_(str(text))
             ddf = ddf[ddf['DESCRIPTION'].str.contains(query, case=False, regex=True)].copy()
 
-            reorder = MASK[0:6]+floor+MASK[6:]
-            ddf = ddf[reorder].copy()
+            # check query did not match
+            if ddf.shape[0] == 0:
+                return None, dbc.CardBody([
+                                html.H4(f"No have {text} in BOQ"),
+                                ])
+            else:
+                reorder = MASK[0:6]+floor+MASK[6:]
+                ddf = ddf[reorder].copy()
 
-            # render value box
-            value = ddf['AMOUNT'].copy().sum() # sum series
-            # reder table
-            columns = [{"name": x, "id": x} for x in ddf.columns]
-            ddf = ddf.to_dict('records')
+                # render value box
+                value = ddf['AMOUNT'].copy().sum() # sum series
+                # reder table
+                columns = [{"name": x, "id": x} for x in ddf.columns]
+                ddf = ddf.to_dict('records')
 
-            return table_generated(ddf, columns), dbc.CardBody([
-                                                                html.H4(f"Total {text} in {floors}:"),
-                                                                html.H5(f'{value:,.2f} : THB')
-                                                                ])
+                return table_generated(ddf, columns), dbc.CardBody([
+                                                                    html.H4(f"Total {text} in {floors}:"),
+                                                                    html.H5(f'{value:,.2f} : THB')
+                                                                    ])
+
+        
