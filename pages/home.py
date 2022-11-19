@@ -20,7 +20,9 @@ content = html.Div(id='content', children=[
     dbc.Row([
         html.H5('Upload File:'),
         upload_file(),
-        dbc.Col(children=[
+    
+    dbc.Row([
+        dbc.Col([
             card_for_graph(
                 title=html.H5('BOQ Summary:', className="card-title"),
                 content=[
@@ -31,7 +33,18 @@ content = html.Div(id='content', children=[
                         value='pie',  inline=True),
                 ]
             ),
-        ]),
+        ],className='col-lg-6 col-mb-12'),
+        dbc.Col([
+            card_for_graph(
+            html.H5('Floor Filter:'),
+            content=[
+                dcc.Dropdown(options=[], id='floor-filter-dropdown', className='ddb1',
+                placeholder='Select...', multi=True),
+                html.Button('Submit', id='button0', n_clicks=0, className='btn1'),
+                dcc.Graph(id='floor-filter-render', className='pb-4')
+            ])
+        ],className='col-lg-6 col-mb-12')
+    ])
     ]),
 
     dbc.Row([
@@ -125,6 +138,7 @@ def render_wbs1(data, choice):
 
     return fig
 
+# --------------------
 # update dropdown options
 @callback(
     Output('wbs1-dropdown', 'options'),
@@ -149,4 +163,57 @@ def render_wbs2(n, data, value):
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
     fig = bar_plot(df, 'WBS_1', 'WBS_3', value)
+    return fig
+
+# --------------------
+# update dropdown
+MASK = ['WBS_1', 'WBS_2', 'WBS_3', 'WBS_4', 'DESCRIPTION',
+        'UNIT','QTY', 'MAT', 'LAB', 'TOTAL', 'AMOUNT']
+
+@callback(
+    Output('floor-filter-dropdown', 'options'),
+    Input('stored-data', 'data'),
+    )
+def update_dropdown_options(data):
+    df = pd.DataFrame.from_dict(data) 
+    df = df_preprocessing(df)
+
+    FLOOR = [{'label':x, 'value':x} for x in df.columns if x not in MASK]
+    return FLOOR
+
+# update dropdown
+@callback(
+    Output('floor-filter-render', 'figure'),
+    Input('button0', 'n_clicks'),
+    Input('stored-data', 'data'),
+    State('floor-filter-dropdown', 'value'),
+)
+def update_fig0(n, data, floors):
+    df = pd.DataFrame.from_dict(data) 
+    df = df_preprocessing(df)
+    floor = [x for x in floors]
+
+    columns = MASK+floor
+    ddf = df[columns].copy()
+   
+    # compute 'QTY' and 'AMOUNT' depend on selected floor 
+    ddf['QTY'] = ddf[floor].copy().sum(axis=1)
+    ddf['AMOUNT'] = ddf[['QTY', 'TOTAL']].copy().prod(axis=1) 
+
+    # ddf = ddf[~(ddf[floors]==0)] # cut off zero in selected floor
+    ddf = ddf[~(ddf[floor]==0).all(axis=1)]
+
+    reorder = MASK[0:6]+floor+MASK[6:]
+    ddf2 = ddf[reorder].copy()
+
+    ddf2 = ddf2.groupby('WBS_1')['AMOUNT'].sum().reset_index()
+    ddf2.columns = ['Description', 'Amount']
+
+    fig = px.bar(ddf2, x='Description', y='Amount', text='Amount',
+                    color='Description', title='', log_y=True,
+                    labels=dict(Description='Description', Amount="Amount(Log scale)"))
+
+    fig.update_xaxes(showticklabels=False)
+    fig.update_traces(texttemplate='%{text:.2s}')
+
     return fig

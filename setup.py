@@ -9,11 +9,11 @@ setup(
     name='tools',
     version='0.1',
     license='',
-    description='tools script use in structural design',
+    description='tools script use in boq analysis',
     url='',
     author='Suzanoo',
     author_email='highwaynumber12@gmail.com',
-    packages=find_packages(exclude=['section']),
+    packages=find_packages(exclude=['data']),
     install_requires=[
         'numpy',
         'pandas',
@@ -21,8 +21,9 @@ setup(
         'dash',
         'dash_bootstrap_components',
         'setuptools'
-        'openpyxl'
+        # 'openpyxl'
     ],
+    # use pip install openpyxl
 
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

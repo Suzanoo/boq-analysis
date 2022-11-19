@@ -8,9 +8,9 @@ def upload_file():
     layout = html.Div([
         dcc.Upload(
             id='upload-data',
-            children=html.Div([
+            children=html.Div(children=[
                 'Drag & Drop or ',
-                html.A(id='upload-anchor', children=['Click'], style={"color":"blue"}),
+                html.A(children=['Click'], style={"color":"blue"}),
             ]),
             style={
                 'width': '100%',
