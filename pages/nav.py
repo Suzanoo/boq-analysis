@@ -10,17 +10,25 @@ def sidebar():
             [
                 dbc.Nav(className="navbar-nav bd-navbar-nav ", children=
                     [
-                        dbc.NavLink(className='nav-link', children=["Home"], href="/", active="exact"),
-                        dbc.NavLink(className='nav-link', children=["WBS"], href="/wbs", active="exact"),
-                        dbc.NavLink(className='nav-link', children=["Query"], href="/query", active="exact"),
+                        dbc.NavItem([
+                            dbc.NavLink("_Home", href="/", active="exact",
+                                        className='nav-link bi bi-house me-2')
+                        ]),
+                        dbc.NavItem([
+                            dbc.NavLink('_WBS', href="/wbs", active="exact",
+                                        className='nav-link bi bi-bar-chart me-2')
+                        ]),
+                        dbc.NavItem([
+                            dbc.NavLink('_Query', href="/query", active="exact",
+                                        className='nav-link bi bi-funnel-fill me-2')
+                        ]),
                     ],
                     vertical=True,
                     pills=True,
                 ),
                     html.Hr(),
             ]),
-        ],
-        # style={'background-color':'#696d71',}
+        ]
     )
     return layout
 
@@ -30,9 +38,18 @@ def top_nav():
             dbc.Col([
                 dbc.Nav(className="navbar-nav bd-navbar-nav ", children=
                     [
-                        dbc.NavLink(className='nav-link-top', children=["Home"], href="/", active="exact"),
-                        dbc.NavLink(className='nav-link-top', children=["WBS"], href="/wbs", active="exact",),
-                        dbc.NavLink(className='nav-link-top', children=["Query"], href="/query", active="exact"),
+                        dbc.NavItem([
+                            dbc.NavLink("_Home", href="/", active="exact",
+                                        className='top-nav bi bi-house me-2 d-flex justify-content-center text-white')
+                        ]),
+                        dbc.NavItem([
+                            dbc.NavLink('_WBS', href="/wbs", active="exact",
+                                        className='top-nav bi bi-bar-chart me-2 d-flex justify-content-center text-white')
+                        ]),
+                        dbc.NavItem([
+                            dbc.NavLink('_Query', href="/query", active="exact",
+                                        className='top-nav bi bi-funnel-fill me-2 d-flex justify-content-center text-white')
+                        ]),
                     ],
                     vertical=True,
                     pills=False,

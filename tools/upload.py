@@ -20,13 +20,12 @@ def upload_file():
                 'borderStyle': 'dashed',
                 'borderRadius': '5px',
                 'textAlign': 'center',
-                'margin': '10px'
+                'margin': '10px',
             },
             # Allow multiple files to be uploaded
             multiple=False
         ),
         html.Div(id='output-data-upload'),
-
     ])
     return layout
 

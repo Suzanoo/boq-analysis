@@ -14,13 +14,13 @@ content = html.Div(id='content', children=[
     dbc.Row([
         dbc.Col([
             html.H5('Material Query:'),
-        dcc.Input(id="query-input", className='input1', value='all',
-                    type="text", placeholder="Search...type 'all' for all materials query"),
+            dcc.Input(id="query-input", className='input1', value='all',
+                        type="text", placeholder="Search...type 'all' for all materials query"),
 
-        dcc.Dropdown(id='query-dropdown', className='ddb1',  value='all',
-                    options=[], placeholder='Select...', multi=True),
-        html.Button('Submit', id='button5', n_clicks=0, className='btn1'),
-        html.Hr(),
+            dcc.Dropdown(id='query-dropdown', className='ddb1',  value='all',
+                        options=[], placeholder='Select...', multi=True),
+            html.Button('Submit', id='button5', n_clicks=0, className='btn1 mb-2'),
+            html.Hr(),
         ])
     ]),
     dbc.Row([

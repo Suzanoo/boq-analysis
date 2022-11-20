@@ -1,12 +1,5 @@
-const hamburger = document.querySelector(".hamburger");
-const navMenu = document.querySelector(".sidebar");
+window.onload = function(){
+  alert('ก่อนอัพโหลดไฟล์ ตรวจสอบชื่อคอลัมส์ โดยตั้งชื่อให้ตรงกันยกเว้นชื่อชั้นต่างๆ ตั้งชื่อต่างกันได้')
+};
 
-// document.querySelectorAll(".nav-link").forEach(n => n.addEventListener("click", () => {
 
-//   hamburger.classList.remove("active");
-//   navMenu.classList.remove("active");
-// }))
-
-hamburger.addEventListener('click', function(){
-  navMenu.classList.toggle('sidebar')
-})

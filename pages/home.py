@@ -4,12 +4,26 @@ import pandas as pd
 import dash
 import plotly.express as px
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 
 from dash import dcc, html, Input, Output, State, callback
 
 from pages.nav import sidebar, top_nav
 from tools.upload import upload_file
-from tools.utils import bar_plot, card_for_graph, df_preprocessing, make_card
+from tools.utils import bar_plot, df_preprocessing
+
+BG_COLORS = {
+    'background': '#262625',
+    'text': '#7FDBFF'
+}
+
+GRAPH_LAYOUT = {
+    'plot_bgcolor': BG_COLORS['background'],
+    'paper_bgcolor': BG_COLORS['background'],
+    'font': {
+        'color': BG_COLORS['text']
+    }
+}
 
 dash.register_page(
     __name__,
@@ -18,54 +32,72 @@ dash.register_page(
 
 content = html.Div(id='content', children=[ 
     dbc.Row([
-        html.H5('Upload File:'),
-        upload_file(),
-    
+        dbc.Col([
+            daq.BooleanSwitch(
+            on=False,
+            id='toggle-theme',
+            className='float-end mt-3'),
+        ])
+    ]),
     dbc.Row([
         dbc.Col([
-            card_for_graph(
-                title=html.H5('BOQ Summary:', className="card-title"),
-                content=[
-                    dcc.Graph(id='wbs1-render', className='pb-4', figure={}),
-                    dcc.RadioItems(id='radio1', options={
-                        'pie': 'Pie Chart',
-                        'bar': 'Bar Chart'},
-                        value='pie',  inline=True),
-                ]
-            ),
-        ],className='col-lg-6 col-mb-12'),
+            html.H5('Upload File:'),
+            upload_file(),
+            html.Hr()
+        ]),
+        
+    dbc.Row([
         dbc.Col([
-            card_for_graph(
+            html.H5('BOQ Summary:', className="card-title"),
+            html.Br(),
+            html.Br(),
+            dcc.RadioItems(id='radio1',
+                options={
+                    'pie': 'Pie Chart',
+                    'bar': 'Bar Chart'
+                    },
+                value='pie',  inline=True),
+            dcc.Graph(id='wbs1-render', className='pb-4', figure={}),
+        ],className='col-lg-6 col-mb-12'),
+
+        dbc.Col([
             html.H5('Floor Filter:'),
-            content=[
-                dcc.Dropdown(options=[], id='floor-filter-dropdown', className='ddb1',
-                placeholder='Select...', multi=True),
-                html.Button('Submit', id='button0', n_clicks=0, className='btn1'),
-                dcc.Graph(id='floor-filter-render', className='pb-4')
-            ])
+            dcc.Dropdown(options=[], id='floor-filter-dropdown', className='ddb1',
+                    placeholder='Select...', multi=True),
+            html.Button('Submit', id='button0', n_clicks=0, className='btn1 mb-2'),
+            dcc.Graph(id='floor-filter-render', className='pb-4')
         ],className='col-lg-6 col-mb-12')
     ])
     ]),
 
     dbc.Row([
-        dbc.Col(children=[
-            card_for_graph(
+        dbc.Col([
             html.H5('Working Breakdown Structure Level 2:'),
-            content=[
-                dcc.Dropdown(options=[], id='wbs1-dropdown', className='ddb1'),
-                html.Button('Submit', id='button1', n_clicks=0, className='btn1'),
-                dcc.Graph(id='wbs2-render', className='pb-4')
-            ])
+            dcc.Dropdown(options=[], id='wbs1-dropdown', className='ddb1'),
+            html.Button('Submit', id='button1', n_clicks=0, className='btn1 mb-2'),
+            dcc.Graph(id='wbs2-render', className='pb-4')
         ]),
     ]),
 ])
 
-layout = html.Div(children=[ 
+layout = html.Div(id='home-page', children=[ 
     dbc.Col([sidebar()]),
     dbc.Col([top_nav(), content]),
 ])
 
 # ==================
+# switch theme
+@callback(
+    Output('home-page', 'className'),
+    Input('toggle-theme', 'on'),
+    State('home-page', 'className'),
+)
+def switch_bg(dark, name):
+    if(dark):
+        return 'dark'
+    else:
+        return ''
+
 # uploaded data
 @callback(
     Output('output-data-upload', 'children'),
@@ -119,53 +151,29 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
     Output('wbs1-render', 'figure'),
     Input('stored-data', 'data'),
     Input('radio1', 'value'),
+    Input('toggle-theme', 'on'),
     prevent_initial_call=True)
-def render_wbs1(data, choice):
+def render_wbs1(data, choice, theme):
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
     ddf = df.groupby('WBS_1')['AMOUNT'].sum().reset_index()
     ddf.columns = ['Description', 'Amount']
 
     if choice == 'pie':
-        fig = px.pie(ddf, values='Amount', names='Description', title='', hole=.5)
+        fig = px.pie(ddf, values='Amount', names='Description', hole=.5)
     else:
-        fig = px.bar(ddf, x='Description', y='Amount', text='Amount',
-                    color='Description', title='', log_y=True,
-                    labels=dict(Description='Description', Amount="Amount(Log scale)"))
-
+        fig = px.bar(ddf, x='Description', y='Amount', color='Description')
         fig.update_xaxes(showticklabels=False)
-        fig.update_traces(texttemplate='%{text:.2s}')
+
+    if theme:
+        fig.update_layout(dict1=GRAPH_LAYOUT)
+    else:
+        pass
 
     return fig
 
 # --------------------
-# update dropdown options
-@callback(
-    Output('wbs1-dropdown', 'options'),
-    Input('stored-data', 'data'),
-    prevent_initial_call=True)
-def update_dropdown_options(data):
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
-    ddf = df[(df['WBS_1'] != 'PRELIMINARIES')].copy()
-
-    options1 = ddf['WBS_1'].unique()
-    return options1
-
-# render graph wbs_2
-@callback(
-    Output('wbs2-render', 'figure'),
-    Input('button1', 'n_clicks'),
-    Input('stored-data', 'data'),
-    State('wbs1-dropdown', 'value'),
-    prevent_initial_call=True)
-def render_wbs2(n, data, value):
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
-    fig = bar_plot(df, 'WBS_1', 'WBS_3', value)
-    return fig
-
-# --------------------
+# render graph by floor filter
 # update dropdown
 MASK = ['WBS_1', 'WBS_2', 'WBS_3', 'WBS_4', 'DESCRIPTION',
         'UNIT','QTY', 'MAT', 'LAB', 'TOTAL', 'AMOUNT']
@@ -173,22 +181,24 @@ MASK = ['WBS_1', 'WBS_2', 'WBS_3', 'WBS_4', 'DESCRIPTION',
 @callback(
     Output('floor-filter-dropdown', 'options'),
     Input('stored-data', 'data'),
+    prevent_initial_call=True
     )
 def update_dropdown_options(data):
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
-
     FLOOR = [{'label':x, 'value':x} for x in df.columns if x not in MASK]
     return FLOOR
 
-# update dropdown
+# render
 @callback(
     Output('floor-filter-render', 'figure'),
     Input('button0', 'n_clicks'),
     Input('stored-data', 'data'),
     State('floor-filter-dropdown', 'value'),
+    Input('toggle-theme', 'on'),
+    prevent_initial_call=True
 )
-def update_fig0(n, data, floors):
+def update_fig0(n, data, floors, theme):
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
     floor = [x for x in floors]
@@ -209,11 +219,55 @@ def update_fig0(n, data, floors):
     ddf2 = ddf2.groupby('WBS_1')['AMOUNT'].sum().reset_index()
     ddf2.columns = ['Description', 'Amount']
 
-    fig = px.bar(ddf2, x='Description', y='Amount', text='Amount',
-                    color='Description', title='', log_y=True,
-                    labels=dict(Description='Description', Amount="Amount(Log scale)"))
-
+    fig = px.bar(
+        ddf2, x='Description', y='Amount',
+        text='Amount',
+        color='Description', log_y=True)
     fig.update_xaxes(showticklabels=False)
+    fig.update_yaxes(title='Amount(log-scale)')
     fig.update_traces(texttemplate='%{text:.2s}')
 
+    if theme:
+        fig.update_layout(dict1=GRAPH_LAYOUT)
+    else:
+        pass
+
     return fig
+
+# --------------------
+# render graph wbs_2
+# update dropdown options
+@callback(
+    Output('wbs1-dropdown', 'options'),
+    Input('stored-data', 'data'),
+    prevent_initial_call=True)
+def update_dropdown_options(data):
+    df = pd.DataFrame.from_dict(data) 
+    df = df_preprocessing(df)
+    ddf = df[(df['WBS_1'] != 'PRELIMINARIES')].copy()
+
+    options1 = ddf['WBS_1'].unique()
+    return options1
+
+# render
+@callback(
+    Output('wbs2-render', 'figure'),
+    Input('button1', 'n_clicks'),
+    Input('stored-data', 'data'),
+    State('wbs1-dropdown', 'value'),
+    Input('toggle-theme', 'on'),
+    prevent_initial_call=True)
+def render_wbs2(n, data, value, theme):
+    df = pd.DataFrame.from_dict(data) 
+    df = df_preprocessing(df)
+
+    fig = bar_plot(df, 'WBS_1', 'WBS_3', value)
+
+    if theme:
+        fig.update_layout(dict1=GRAPH_LAYOUT)
+    else:
+        pass
+
+    return fig
+
+# --------------------
