@@ -8,6 +8,7 @@ def sidebar():
             html.Hr(),
             html.Div(
             [
+                html.A(),
                 dbc.Nav(className="navbar-nav bd-navbar-nav ", children=
                     [
                         dbc.NavItem([

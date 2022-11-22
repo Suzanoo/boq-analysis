@@ -87,8 +87,6 @@ body {
     }
 }
 
-
-
 HTML CSS JSResult Skip Results Iframe
 EDIT ON
 body {
@@ -112,9 +110,22 @@ code {
   color: firebrick;
 }
 
+/* .darkToggle {
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 5px;
+    border: 2px solid #555;
+  }
+  
+.darkToggle:checked {
+background: #333;
+} */
+  
 
 .dark {
-  color: white;
-  background: #3c3c3d;
+  color: rgba(255, 255, 255, 0.882);
+  background: #262626;
 }
 

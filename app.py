@@ -2,18 +2,20 @@ import dash
 import dash_bootstrap_components as dbc
 
 from dash import dcc, html
-
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
     use_pages=True,
-    suppress_callback_exceptions=True,
+    suppress_callback_exceptions=False,
 )
 
-app.layout = html.Div([
-    dcc.Store(id='stored-data', storage_type='session'),
-	dash.page_container,
-])
+def serve_layout():
+    return html.Div([
+                dcc.Store(id='stored-data', storage_type='session'),
+                dash.page_container,
+            ])
+
+app.layout = serve_layout
 
 if __name__ == "__main__":
     app.run_server(debug=True)

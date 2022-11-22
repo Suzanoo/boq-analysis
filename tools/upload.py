@@ -35,17 +35,11 @@ def parse_contents(contents, filename, date):
     decoded = base64.b64decode(content_string)
     try:
         if 'csv' in filename:
-            # Assume that the user uploaded a CSV file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')), delimiter=",")
 
         elif 'xls' in filename:
-            # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
-            # solve column name comes from excel table and unknown name('table1','unknown','unknown',...)
-            # cut old column name and set row 1 to be column name
-            # df.columns = df.iloc[0]
-            # df = df[1:]
 
     except Exception as e:
         print(e)

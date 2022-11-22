@@ -5,6 +5,7 @@ import dash_daq as daq
 
 from dash import html, dcc, callback, Input, Output, State
 from dash import dcc
+from dash.exceptions import PreventUpdate
 
 from pages.nav import sidebar, top_nav
 from tools.utils import bar_plot, df_preprocessing
@@ -37,7 +38,11 @@ content = html.Div(id='content', children=[
     dbc.Row([
         dbc.Col([
             html.H5('Working Breakdown Structure Level 3:'),
-            dcc.Dropdown(options=[], id='wbs2-dropdown', className='ddb1'),
+            dcc.Dropdown(id='wbs2-dropdown', className='ddb1',
+                        persistence=True, # allow initial value
+                        persistence_type='session', # kept when reload, clear on close browser & new tab
+                        persisted_props=['value']
+            ),
             html.Button('Submit', id='button2', n_clicks=0, className='btn1 mb-2'),
             dcc.Graph(id='wbs3-render', className='pb-4', figure={}),
         ])
@@ -47,7 +52,11 @@ content = html.Div(id='content', children=[
         dbc.Col([
             html.Hr(),
             html.H5('Working Breakdown Structure Level 4:'),
-            dcc.Dropdown(options=[], id='wbs3-dropdown', className='ddb1'),
+            dcc.Dropdown(options=[], id='wbs3-dropdown', className='ddb1',
+            persistence=True, # allow initial value
+            persistence_type='session', # kept when reload, clear on close browser & new tab
+            persisted_props=['value']
+            ),
             html.Button('Submit', id='button3', n_clicks=0, className='btn1 mb-2'),  
             dcc.Graph(id='wbs4-render', className='pb-4', figure={}),
         ])
@@ -57,7 +66,10 @@ content = html.Div(id='content', children=[
         dbc.Col([
             html.Hr(),
             html.H5('Item Description:'),
-            dcc.Dropdown(options=[], id='wbs4-dropdown', className='ddb1'),
+            dcc.Dropdown(options=[], id='wbs4-dropdown', className='ddb1',
+                        persistence=True, # allow initial value
+                        persistence_type='session', # kept when reload, clear on close browser & new tab
+                        persisted_props=['value']),
             html.Button('Submit', id='button4', n_clicks=0, className='btn1 mb-2'),  
             dcc.Graph(id='desc-render', className='pb-4', figure={}), 
         ])
@@ -67,8 +79,7 @@ content = html.Div(id='content', children=[
 layout = html.Div(id='wbs-page', children=[ 
     dbc.Col([sidebar()]),
     dbc.Col([top_nav(), content]), 
-]
-)
+])
 
 # =================================
 # switch theme
@@ -113,13 +124,15 @@ def update_dropdown_options(data):
 def render_wbs3(n, data, value, theme):
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
-
-    fig = bar_plot(df, 'WBS_2', 'WBS_3', value)
-    if theme:
-        fig.update_layout(dict1=GRAPH_LAYOUT)
+    if value is not None:
+        fig = bar_plot(df, 'WBS_2', 'WBS_3', value)
+        if theme:
+            fig.update_layout(dict1=GRAPH_LAYOUT)
+        else:
+            pass
+        return fig
     else:
-        pass
-    return fig
+        raise PreventUpdate
 
 # render graph wbs_4
 @callback(
@@ -132,13 +145,15 @@ def render_wbs3(n, data, value, theme):
 def render_wbs4(n, data, value, theme):
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
-
-    fig = bar_plot(df, 'WBS_3', 'WBS_4', value)
-    if theme:
-        fig.update_layout(dict1=GRAPH_LAYOUT)
+    if value is not None:
+        fig = bar_plot(df, 'WBS_3', 'WBS_4', value)
+        if theme:
+            fig.update_layout(dict1=GRAPH_LAYOUT)
+        else:
+            pass
+        return fig
     else:
-        pass
-    return fig
+        raise PreventUpdate
 
 # render graph of items
 @callback(
@@ -151,10 +166,12 @@ def render_wbs4(n, data, value, theme):
 def render_desc(n, data, value, theme):
     df = pd.DataFrame.from_dict(data) 
     df = df_preprocessing(df)
-
-    fig = bar_plot(df, 'WBS_4', 'DESCRIPTION', value)
-    if theme:
-        fig.update_layout(dict1=GRAPH_LAYOUT)
+    if value is not None:
+        fig = bar_plot(df, 'WBS_4', 'DESCRIPTION', value)
+        if theme:
+            fig.update_layout(dict1=GRAPH_LAYOUT)
+        else:
+            pass
+        return fig
     else:
-        pass
-    return fig
+        raise PreventUpdate
