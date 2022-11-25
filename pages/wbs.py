@@ -11,7 +11,7 @@ from pages.nav import sidebar, top_nav
 from tools.utils import bar_plot, df_preprocessing
 
 BG_COLORS = {
-    'background': '#262625',
+    'background': '#202020',
     'text': '#7FDBFF'
 }
 
@@ -45,6 +45,12 @@ content = html.Div(id='content', children=[
             ),
             html.Button('Submit', id='button2', n_clicks=0, className='btn1 mb-2'),
             dcc.Graph(id='wbs3-render', className='pb-4', figure={}),
+            dcc.RadioItems(id='radio3',
+                options = [
+                    {'label':'Show Legend', 'value':True},
+                    {'label':'Hide Legend', 'value':False}
+                ], value=True,  inline=True
+            ),
         ])
     ]),
 
@@ -59,6 +65,12 @@ content = html.Div(id='content', children=[
             ),
             html.Button('Submit', id='button3', n_clicks=0, className='btn1 mb-2'),  
             dcc.Graph(id='wbs4-render', className='pb-4', figure={}),
+            dcc.RadioItems(id='radio4',
+                options = [
+                    {'label':'Show Legend', 'value':True},
+                    {'label':'Hide Legend', 'value':False}
+                ], value=True,  inline=True
+            ),
         ])
     ]),
 
@@ -72,6 +84,12 @@ content = html.Div(id='content', children=[
                         persisted_props=['value']),
             html.Button('Submit', id='button4', n_clicks=0, className='btn1 mb-2'),  
             dcc.Graph(id='desc-render', className='pb-4', figure={}), 
+            dcc.RadioItems(id='radio5',
+                options = [
+                    {'label':'Show Legend', 'value':True},
+                    {'label':'Hide Legend', 'value':False}
+                ], value=True,  inline=True
+            ),
         ])
     ]),
 ])
@@ -103,29 +121,34 @@ def switch_bg(dark, name):
     Input('stored-data', 'data'),
     )
 def update_dropdown_options(data):
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
-    ddf = df[(df['WBS_1'] != 'PRELIMINARIES')].copy()
+    if data is not None:
+        df = pd.DataFrame.from_dict(data) 
+        df = df_preprocessing(df)
+        ddf = df[(df['WBS_1'] != 'PRELIMINARIES')].copy()
 
-    options2 = ddf['WBS_2'].unique()
-    options3 = ddf['WBS_3'].unique()
-    options4 = ddf['WBS_4'].unique()
+        options2 = ddf['WBS_2'].unique()
+        options3 = ddf['WBS_3'].unique()
+        options4 = ddf['WBS_4'].unique()
 
-    return options2, options3, options4
+        return options2, options3, options4
+    else:
+        raise PreventUpdate
 
 # render graph wbs_3
 @callback(
     Output('wbs3-render', 'figure'),
     Input('button2', 'n_clicks'),
-    Input("stored-data", "data"),
+    State("stored-data", "data"),
     State('wbs2-dropdown', 'value'),# used State instead of Input since, value did not update value click
     Input('toggle-theme', 'on'),
+    Input('radio3', 'value'),
     prevent_initial_call=True) 
-def render_wbs3(n, data, value, theme):
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
+def render_wbs3(n, data, value, theme, legend):
     if value is not None:
+        df = pd.DataFrame.from_dict(data) 
+        df = df_preprocessing(df)
         fig = bar_plot(df, 'WBS_2', 'WBS_3', value)
+        fig.update_layout(showlegend=legend)
         if theme:
             fig.update_layout(dict1=GRAPH_LAYOUT)
         else:
@@ -138,15 +161,17 @@ def render_wbs3(n, data, value, theme):
 @callback(
     Output('wbs4-render', 'figure'),
     Input('button3', 'n_clicks'),
-    Input("stored-data", "data"),
+    State("stored-data", "data"),
     State('wbs3-dropdown', 'value'),
     Input('toggle-theme', 'on'),
+    Input('radio4', 'value'),
     prevent_initial_call=True) 
-def render_wbs4(n, data, value, theme):
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
+def render_wbs4(n, data, value, theme, legend):
     if value is not None:
+        df = pd.DataFrame.from_dict(data) 
+        df = df_preprocessing(df)
         fig = bar_plot(df, 'WBS_3', 'WBS_4', value)
+        fig.update_layout(showlegend=legend)
         if theme:
             fig.update_layout(dict1=GRAPH_LAYOUT)
         else:
@@ -159,15 +184,17 @@ def render_wbs4(n, data, value, theme):
 @callback(
     Output('desc-render', 'figure'),
     Input('button4', 'n_clicks'),
-    Input("stored-data", "data"),
+    State("stored-data", "data"),
     State('wbs4-dropdown', 'value'),
     Input('toggle-theme', 'on'),
+    Input('radio5', 'value'),
     prevent_initial_call=True) 
-def render_desc(n, data, value, theme):
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
+def render_desc(n, data, value, theme, legend):
     if value is not None:
+        df = pd.DataFrame.from_dict(data) 
+        df = df_preprocessing(df)
         fig = bar_plot(df, 'WBS_4', 'DESCRIPTION', value)
+        fig.update_layout(showlegend=legend)
         if theme:
             fig.update_layout(dict1=GRAPH_LAYOUT)
         else:

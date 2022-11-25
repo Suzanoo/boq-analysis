@@ -50,13 +50,16 @@ MASK = ['WBS_1', 'WBS_2', 'WBS_3', 'WBS_4', 'DESCRIPTION',
     Input('stored-data', 'data'),
     )
 def update_dropdown_options(data):
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
+    if data is not None:
+        df = pd.DataFrame.from_dict(data) 
+        df = df_preprocessing(df)
 
-    FLOOR = [{'label':x, 'value':x} for x in df.columns if x not in MASK] + [
-                {'label': 'Select all', 'value': 'all'}]
+        FLOOR = [{'label':x, 'value':x} for x in df.columns if x not in MASK] + [
+                    {'label': 'Select all', 'value': 'all'}]
 
-    return FLOOR
+        return FLOOR
+    else:
+        raise PreventUpdate
 
 # render table
 ## solve method to return whole table
@@ -83,12 +86,10 @@ def update_table(n, data, text, floors):
     '''
     # print(f'text: {text}') # string statement
     # print(f'floors: {floors}') # list
-
-    df = pd.DataFrame.from_dict(data) 
-    df = df_preprocessing(df)
-    FLOOR = [x for x in df.columns if x not in MASK] # get floors name
-
-    if n != 0:
+    if (n != 0) & (data is not None):
+        df = pd.DataFrame.from_dict(data) 
+        df = df_preprocessing(df)
+        FLOOR = [x for x in df.columns if x not in MASK] # get floors name
         # render whole table
         if (text == 'all') & ('all' in floors):
             ddf = df.copy()
@@ -180,5 +181,5 @@ def update_table(n, data, text, floors):
                                                                     html.H4(f"Total {text} in {floors}:"),
                                                                     html.H5(f'{value:,.2f} : THB')
                                                                     ])
-
-        
+    else:
+        raise PreventUpdate

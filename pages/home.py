@@ -13,16 +13,16 @@ from pages.nav import sidebar, top_nav
 from tools.upload import upload_file
 from tools.utils import bar_plot, df_preprocessing
 
-BG_COLORS = {
-    'background': '#262626',
+DICT= {
+    'background': '#202020',
     'text': '#7FDBFF'
 }
 
 GRAPH_LAYOUT = {
-    'plot_bgcolor': BG_COLORS['background'],
-    'paper_bgcolor': BG_COLORS['background'],
+    'plot_bgcolor': DICT['background'],
+    'paper_bgcolor': DICT['background'],
     'font': {
-        'color': BG_COLORS['text']
+        'color': DICT['text']
     }
 }
 
@@ -90,7 +90,13 @@ content = html.Div(id='content', children=[
             ),
 
             html.Button('Submit', id='button1', n_clicks=0, className='btn1 mb-2'),
-            dcc.Graph(id='wbs2-render', className='pb-4')
+            dcc.Graph(id='wbs2-render', className='pb-4'),
+            dcc.RadioItems(id='radio2',
+                options = [
+                    {'label':'Show Legend', 'value':True},
+                    {'label':'Hide Legend', 'value':False}
+                ], value=True,  inline=True
+            ),
         ]),
     ]),
 ])
@@ -149,7 +155,6 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 
         block = html.Div([
             html.P(filename),
-            html.Hr(),
         ])
         return block, df.to_dict('records') 
     else:
@@ -260,14 +265,15 @@ def update_fig(n, data, floors, theme):
     State('stored-data', 'data'),
     State('wbs1-dropdown', 'value'),
     Input('toggle-theme', 'on'),
+    Input('radio2', 'value'),
     prevent_initial_call=True)
-def render_wbs2(n, data, value, theme):
+def render_wbs2(n, data, value, theme, legend):
     if value is not None:
         df = pd.DataFrame.from_dict(data) 
         df = df_preprocessing(df)
 
         fig = bar_plot(df, 'WBS_1', 'WBS_3', value)
-
+        fig.update_layout(showlegend=legend)
         if theme:
             fig.update_layout(dict1=GRAPH_LAYOUT)
         else:
