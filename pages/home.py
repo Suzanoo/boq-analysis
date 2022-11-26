@@ -283,4 +283,10 @@ def render_wbs2(n, data, value, theme, legend):
 
     return fig
 
-# --------------------
+@callback(
+    Output('example', 'data'),
+    Input('download-btn', 'n_clicks'),
+    prevent_initial_call=True,
+)
+def download(n):
+    return dcc.send_file('./example_file.png')

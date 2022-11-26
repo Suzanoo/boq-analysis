@@ -1,4 +1,4 @@
-from dash import html
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 def sidebar():
@@ -28,6 +28,10 @@ def sidebar():
                     pills=True,
                 ),
                     html.Hr(),
+                    html.Div([
+                        html.Button("Download Example File", id="download-btn"),
+                        dcc.Download(id="example")
+                    ])
             ]),
         ]
     )
