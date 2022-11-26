@@ -9,6 +9,9 @@ app = dash.Dash(
     suppress_callback_exceptions=False,
 )
 
+# for gunicorn deployment
+server = app.server
+
 def serve_layout():
     return html.Div([
                 dcc.Store(id='stored-data', storage_type='session'),
@@ -26,10 +29,10 @@ if __name__ == "__main__":
 # TODO for each graph reder vbox of total amount : NG --> show in graph title instead
 # TODO styling for table : OK 7.11.2022
 # TODO export table : OK 7.11.2022
-# TODO ignore id error
-# TODO select graph type
+# TODO ignore id error : OK
+# TODO select graph type : OK
 # TODO redirect from 404 not found
-# TODO hide legend
+# TODO hide legend : OK
 
 
 # Reference:
