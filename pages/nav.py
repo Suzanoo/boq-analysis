@@ -59,6 +59,10 @@ def top_nav():
                     vertical=True,
                     pills=False,
                 ),
+                html.Div([
+                        html.Button("Download Example File", id="download-btn"),
+                        dcc.Download(id="example")
+                    ], className='me-2 d-flex justify-content-center ')
             ])
         ]),      
     ])
